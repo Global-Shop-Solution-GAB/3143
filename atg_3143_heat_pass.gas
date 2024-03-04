@@ -1,0 +1,92 @@
+Program.Sub.ScreenSU.Start
+gui.F_Password..create
+gui.F_Password..caption("Enter Password")
+gui.F_Password..size(3350,1575)
+gui.F_Password..position(0,0)
+gui.F_Password..event(unload,Unload)
+gui.F_Password..alwaysontop(False)
+gui.F_Password..fontname("Arial")
+gui.F_Password..fontsize(8)
+gui.F_Password..forecolor(0)
+gui.F_Password..fontstyle(,,,,)
+gui.F_Password..BackColor(-2147483633)
+gui.F_Password..controlbox(True)
+gui.F_Password..maxbutton(False)
+gui.F_Password..minbutton(True)
+gui.F_Password..mousepointer(0)
+gui.F_Password..moveable(True)
+gui.F_Password..sizeable(False)
+gui.F_Password..ShowInTaskBar(True)
+gui.F_Password..titlebar(True)
+gui.F_Password.txtPass.create(textbox,"",True,3000,300,0,100,300,True,0,Arial,8,-2147483643,1)
+gui.F_Password.lbl1.create(label,"Enter User Password to change Heat field",True,3345,240,1,100,100,True,0,Arial,8,-2147483633,0)
+gui.F_Password.cmdOK.create(button)
+gui.F_Password.cmdOK.caption("OK")
+gui.F_Password.cmdOK.visible(True)
+gui.F_Password.cmdOK.size(855,375)
+gui.F_Password.cmdOK.zorder(0)
+gui.F_Password.cmdOK.position(100,700)
+gui.F_Password.cmdOK.enabled(True)
+gui.F_Password.cmdOK.fontname("Arial")
+gui.F_Password.cmdOK.fontsize(8)
+gui.F_Password.cmdOK.event(click,cmdok_click)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Variable.Global.sHeat.Declare(String)
+Variable.Global.sOriginalHeat.Declare(String)
+Variable.Global.sFile.Declare(String)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.String.Concat(V.Caller.TempDir,"\HeatChange",V.Caller.Terminal,".tmp",V.Global.sFile)
+V.Global.sHeat.Set(V.Passed.000008)
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,15600)
+	F.Intrinsic.File.String2File(V.Global.sFile,V.Global.sHeat)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.Else
+	'Runs of Save Hook (15610) and Heat Change Hook(15631)
+	F.Intrinsic.File.File2String(V.Global.sFile,V.Global.sOriginalHeat)
+	F.Intrinsic.Control.If(V.Global.sHeat.Trim,<>,V.Global.sOriginalHeat)
+		Gui.F_Password.txtPass.PasswordChar("*")
+		Gui.F_Password..Show
+		Gui.F_Password.txtPass.SetFocus
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Control.End
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.Unload.Start
+v.Passed.000008.Set(V.Global.sOriginalHeat)
+F.Intrinsic.Control.End
+
+Program.Sub.Unload.End
+
+program.sub.cmdok_click.start
+V.Local.sPassword.Declare(String)
+V.Local.bValidate.Declare(Boolean)
+
+Gui.F_Password..Visible(False)
+
+V.Local.sPassword.Set(V.Screen.F_Password!txtPass.text)
+F.Global.Security.ValidateUser(V.Local.sPassword,V.Local.bValidate)
+
+F.Intrinsic.Control.If(V.Local.bValidate,=,False)
+	F.Intrinsic.UI.Msgbox("Invalid password")
+	Gui.F_Password.txtPass.Text("")
+	Gui.F_Password..Visible(True)
+F.Intrinsic.Control.Else
+	F.Intrinsic.File.String2File(V.Global.sFile,V.Global.sHeat)
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+program.sub.cmdok_click.end
+
+
